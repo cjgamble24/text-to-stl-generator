@@ -56,22 +56,22 @@ OPENSCAD_TEMPLATE = textwrap.dedent("""
     if (emboss_type == "raised") {
         union() {
             create_plate(plate_width, plate_length, plate_thickness);
-            translate([0, 0, (plate_thickness / 2) + (text_extrude_height / 2)]) {
+            translate([0, 0, plate_thickness/2]) {  // Move text directly to top surface of plate
                 create_3d_text(display_text, font_style, text_size, text_extrude_height);
             }
         }
     } else if (emboss_type == "recessed") {
         difference() {
             create_plate(plate_width, plate_length, plate_thickness);
-            translate([0, 0, (plate_thickness / 2) - text_extrude_height + 0.01]) { // +0.01 to avoid Z-fighting
-                create_3d_text(display_text, font_style, text_size, text_extrude_height + 0.1); // +0.1 to ensure full cut
+            translate([0, 0, plate_thickness/2]) {  // Align with top surface for clean cut
+                create_3d_text(display_text, font_style, text_size, text_extrude_height + 0.01);  // Slight overlap for clean boolean
             }
         }
     } else {
         echo("Error: Invalid emboss_type. Using 'raised' as default.");
         union() {
             create_plate(plate_width, plate_length, plate_thickness);
-            translate([0, 0, (plate_thickness / 2) + (text_extrude_height / 2)]) {
+            translate([0, 0, plate_thickness/2]) {  // Move text directly to top surface of plate
                 create_3d_text(display_text, font_style, text_size, text_extrude_height);
             }
         }

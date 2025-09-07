@@ -43,26 +43,34 @@ OPENSCAD_TEMPLATE = textwrap.dedent("""
     
     // Magnet slot parameters
     enable_magnets = "false";
+    magnet_count = "one";  // "one" or "two"
     magnet_diameter = 6;
     magnet_height = 2;
-    magnet_spacing = 30;  // Space between magnet slots
+    magnet_spacing = 30;  // Space between magnet slots when using two
 
     // --- Modules ---
     module create_magnet_slots(width, length, thickness) {
         if (enable_magnets == "true") {
             bottom_layer = 0.4;  // Leave 0.4mm at bottom of slot
             
-            // Calculate positions for two magnets, centered in the model
-            offset = magnet_spacing / 2;  // Half the spacing to offset from center
-            
-            // Left magnet
-            translate([-offset, 0, -thickness/2 + magnet_height/2 + bottom_layer]) {
-                cylinder(h=magnet_height, d=magnet_diameter, center=true, $fn=32);
-            }
-            
-            // Right magnet
-            translate([offset, 0, -thickness/2 + magnet_height/2 + bottom_layer]) {
-                cylinder(h=magnet_height, d=magnet_diameter, center=true, $fn=32);
+            if (magnet_count == "one") {
+                // Single centered magnet
+                translate([0, 0, -thickness/2 + magnet_height/2 + bottom_layer]) {
+                    cylinder(h=magnet_height, d=magnet_diameter, center=true, $fn=32);
+                }
+            } else {
+                // Two magnets, centered and spaced apart
+                offset = magnet_spacing / 2;  // Half the spacing to offset from center
+                
+                // Left magnet
+                translate([-offset, 0, -thickness/2 + magnet_height/2 + bottom_layer]) {
+                    cylinder(h=magnet_height, d=magnet_diameter, center=true, $fn=32);
+                }
+                
+                // Right magnet
+                translate([offset, 0, -thickness/2 + magnet_height/2 + bottom_layer]) {
+                    cylinder(h=magnet_height, d=magnet_diameter, center=true, $fn=32);
+                }
             }
         }
     }
@@ -204,18 +212,22 @@ class OpenSCADLabelGeneratorApp:
         
         self.enable_magnets_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(self.param_frame, text="Enable Magnet Slots", variable=self.enable_magnets_var).grid(row=13, column=0, sticky="w", pady=2)
+        
+        ttk.Label(self.param_frame, text="Number of Magnets:").grid(row=14, column=0, sticky="w", pady=2)
+        self.magnet_count_var = tk.StringVar(value="one")
+        ttk.Combobox(self.param_frame, textvariable=self.magnet_count_var, values=["one", "two"], state="readonly", width=10).grid(row=15, column=0, sticky="ew", pady=2)
 
-        ttk.Label(self.param_frame, text="Magnet Diameter (mm):").grid(row=14, column=0, sticky="w", pady=2)
+        ttk.Label(self.param_frame, text="Magnet Diameter (mm):").grid(row=16, column=0, sticky="w", pady=2)
         self.magnet_diameter_var = tk.DoubleVar(value=6.0)
-        ttk.Spinbox(self.param_frame, from_=0.4, to_=20.0, increment=0.1, textvariable=self.magnet_diameter_var, width=10).grid(row=15, column=0, sticky="ew", pady=2)
+        ttk.Spinbox(self.param_frame, from_=0.4, to_=20.0, increment=0.1, textvariable=self.magnet_diameter_var, width=10).grid(row=17, column=0, sticky="ew", pady=2)
 
-        ttk.Label(self.param_frame, text="Magnet Height (mm):").grid(row=16, column=0, sticky="w", pady=2)
+        ttk.Label(self.param_frame, text="Magnet Height (mm):").grid(row=18, column=0, sticky="w", pady=2)
         self.magnet_height_var = tk.DoubleVar(value=2.0)
-        ttk.Spinbox(self.param_frame, from_=0.4, to_=10.0, increment=0.1, textvariable=self.magnet_height_var, width=10).grid(row=17, column=0, sticky="ew", pady=2)
+        ttk.Spinbox(self.param_frame, from_=0.4, to_=10.0, increment=0.1, textvariable=self.magnet_height_var, width=10).grid(row=19, column=0, sticky="ew", pady=2)
 
-        ttk.Label(self.param_frame, text="Magnet Spacing (mm):").grid(row=18, column=0, sticky="w", pady=2)
+        ttk.Label(self.param_frame, text="Magnet Spacing (mm):").grid(row=20, column=0, sticky="w", pady=2)
         self.magnet_spacing_var = tk.DoubleVar(value=30.0)
-        ttk.Spinbox(self.param_frame, from_=5.0, to_=50.0, increment=0.5, textvariable=self.magnet_spacing_var, width=10).grid(row=19, column=0, sticky="ew", pady=2)
+        ttk.Spinbox(self.param_frame, from_=5.0, to_=50.0, increment=0.5, textvariable=self.magnet_spacing_var, width=10).grid(row=21, column=0, sticky="ew", pady=2)
 
         self.button_frame = ttk.Frame(self.param_frame)
         self.button_frame.grid(row=11, column=0, columnspan=2, pady=15, sticky="ew")
@@ -476,6 +488,7 @@ class OpenSCADLabelGeneratorApp:
             f"-D plate_thickness={params['plate_thickness']}",
             f"-D emboss_type=\"{params['emboss_type']}\"",
             f"-D enable_magnets=\"{params['enable_magnets']}\"",
+            f"-D magnet_count=\"{params['magnet_count']}\"",
             f"-D magnet_diameter={params['magnet_diameter']}",
             f"-D magnet_height={params['magnet_height']}",
             f"-D magnet_spacing={params['magnet_spacing']}",
@@ -560,6 +573,7 @@ class OpenSCADLabelGeneratorApp:
             "plate_thickness": PLATE_THICKNESS,
             "emboss_type": self.emboss_type_var.get(),
             "enable_magnets": str(self.enable_magnets_var.get()).lower(),
+            "magnet_count": self.magnet_count_var.get(),
             "magnet_diameter": self.magnet_diameter_var.get(),
             "magnet_height": self.magnet_height_var.get(),
             "magnet_spacing": self.magnet_spacing_var.get()
